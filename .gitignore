@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.spec
+!luach.spec
+
+# PyInstaller output
+dist/
+
+# Buildozer
+.buildozer/
+bin/
+
+# Kivy
+*.pyc
+.kivy/
+
+# Notes data (user-specific)
+notes.json
+
+# IDE
+.vscode/
+.idea/
+
+# Colab notebook checkpoints
+.ipynb_checkpoints/
