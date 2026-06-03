@@ -6,6 +6,7 @@ dist/
 build/
 *.spec
 !luach.spec
+!buildozer.spec
 
 # PyInstaller output
 dist/
