@@ -247,7 +247,7 @@ class MonthScreen(Screen):
                                halign="left", size_hint_x=1, text_size=(None, None))
         self._p_times = Label(text="", font_size=sp(11), color=(0.15, 0.15, 0.15, 1),
                                halign="left", size_hint_x=1, text_size=(None, None))
-        self._p_daf   = Label(text="", font_size=sp(11), color=(0.5, 0.3, 0.0, 1),
+        self._p_daf   = Label(text="", font_size=sp(11), color=(0.25, 0.12, 0.0, 1),
                                font_name=_HEBREW_FONT,
                                halign="left", size_hint_x=1, text_size=(None, None))
 
@@ -278,6 +278,7 @@ class MonthScreen(Screen):
         days = WEEKDAYS_HE if ST.hebrew else WEEKDAYS_EN
         for lbl, day in zip(self._hdr_lbls, days):
             lbl.text = _hb(day) if ST.hebrew else day
+            lbl.font_name = _HEBREW_FONT if ST.hebrew else "Roboto"
         self._build_grid()
         self._update_panel()
 
@@ -434,7 +435,7 @@ class DayScreen(Screen):
         pd_bar = BoxLayout(size_hint_y=None, height=dp(28),
                            padding=[dp(8), dp(2), dp(8), dp(2)])
         _bg(pd_bar, (1.0, 0.98, 0.90, 1))
-        self._pd_lbl = Label(text="", font_size=sp(11), color=(0.5, 0.3, 0.0, 1),
+        self._pd_lbl = Label(text="", font_size=sp(11), color=(0.25, 0.12, 0.0, 1),
                              font_name=_HEBREW_FONT)
         pd_bar.add_widget(self._pd_lbl)
         root.add_widget(pd_bar)
@@ -521,6 +522,7 @@ class DayScreen(Screen):
             bg = C_ROW_A if i % 2 == 0 else C_ROW_B
 
             lw = Button(text=lbl_txt, font_size=sp(11),
+                        font_name=_HEBREW_FONT if ST.hebrew else "Roboto",
                         background_normal="", background_color=bg,
                         color=(0.2, 0.2, 0.4, 1),
                         size_hint_y=None, height=dp(36),
