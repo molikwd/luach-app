@@ -18,7 +18,9 @@ try:
 except ImportError:
     _PIL = False
 
-_LOGO_PATH = Path(__file__).parent / "logo.png"
+import sys as _sys
+_BASE_DIR  = Path(getattr(_sys, "_MEIPASS", Path(__file__).parent))
+_LOGO_PATH = _BASE_DIR / "logo.png"
 
 # ── Persistence ───────────────────────────────────────────────────────────
 _APP_DIR   = Path(os.environ.get("APPDATA", Path.home())) / "Luach"
