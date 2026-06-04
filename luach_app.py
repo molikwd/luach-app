@@ -163,6 +163,7 @@ class LuachApp:
         self._build_month_frame()
         self._build_day_frame()
         self._switch_view("month")
+        self.root.after(60_000, self._tick)
 
     # ── Top bar ───────────────────────────────────────────────────────────
     def _build_topbar(self):
@@ -696,6 +697,18 @@ class LuachApp:
         self.selected_date = self.today
         self.current_month = self.today.replace(day=1)
         self._render()
+
+    # ── Midnight refresh ──────────────────────────────────────────────────
+    def _tick(self):
+        new_today = datetime.date.today()
+        if new_today != self.today:
+            old_today = self.today
+            self.today = new_today
+            if self.selected_date == old_today:
+                self.selected_date = new_today
+                self.current_month = new_today.replace(day=1)
+            self._render()
+        self.root.after(60_000, self._tick)
 
     # ── Helpers ───────────────────────────────────────────────────────────
     def _city_key(self) -> str:
