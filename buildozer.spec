@@ -11,7 +11,7 @@ source.include_patterns = luach_kivy.py,zmanim_core.py,logo.png
 version = 1.0
 
 # Pure-Python requirements — all work on Android
-requirements = python3==3.10.14,kivy==2.3.0,zmanim,pyluach,pytz,julian,memoization,python-bidi
+requirements = python3==3.10.14,hostpython3==3.10.14,kivy==2.3.0,zmanim,pyluach,pytz,julian,memoization,python-bidi
 
 orientation = portrait
 fullscreen = 0
