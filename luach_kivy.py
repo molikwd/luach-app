@@ -98,6 +98,8 @@ C_NOTES   = (0.97,  0.97,  0.97,  1)
 def _fmt(dt) -> str:
     if not dt:
         return "—"
+    if getattr(dt, "second", 0) >= 30:
+        dt = dt + datetime.timedelta(minutes=1)
     return dt.strftime("%I:%M %p").lstrip("0") or dt.strftime("%I:%M %p")
 
 

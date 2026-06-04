@@ -144,6 +144,10 @@ def get_parsha(date: datetime.date, hebrew: bool = False) -> Optional[str]:
         return None
 
 
+def _round_min(dt: datetime.datetime) -> datetime.datetime:
+    return dt + datetime.timedelta(minutes=1) if dt.second >= 30 else dt
+
+
 # ── DayZmanim ─────────────────────────────────────────────────────────────
 @dataclass
 class DayZmanim:
@@ -162,7 +166,7 @@ class DayZmanim:
         out = {}
         for label, dt in self.times.items():
             if dt:
-                s = dt.strftime(fmt).lstrip("0") or dt.strftime(fmt)
+                s = _round_min(dt).strftime(fmt).lstrip("0") or _round_min(dt).strftime(fmt)
                 out[label] = s
             else:
                 out[label] = "—"
@@ -171,6 +175,7 @@ class DayZmanim:
     def fmt_time(self, dt: Optional[datetime.datetime], fmt: str = "%I:%M %p") -> str:
         if not dt:
             return "—"
+        dt = _round_min(dt)
         return dt.strftime(fmt).lstrip("0") or dt.strftime(fmt)
 
 
