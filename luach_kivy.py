@@ -21,7 +21,20 @@ from kivy.uix.image import Image as KvImage
 from kivy.metrics import dp, sp
 from kivy.resources import resource_find
 from kivy.core.window import Window
+from kivy.core.text import LabelBase
 from kivy.graphics import Color, Rectangle
+
+_HEBREW_FONT = "Roboto"
+
+def _init_fonts():
+    global _HEBREW_FONT
+    p = resource_find("NotoSansHebrew.ttf")
+    if p:
+        try:
+            LabelBase.register("NotoHebrew", fn_regular=p)
+            _HEBREW_FONT = "NotoHebrew"
+        except Exception:
+            pass
 
 try:
     from bidi.algorithm import get_display as _bidi
@@ -165,13 +178,14 @@ class MonthScreen(Screen):
 
         self._heb_btn = Button(
             text="עב", size_hint=(None, 1), width=dp(46),
-            font_size=sp(15), background_normal="",
+            font_size=sp(15), font_name=_HEBREW_FONT,
+            background_normal="",
             background_color=(0.28, 0.38, 0.68, 1), color=(1, 1, 1, 1),
         )
         self._heb_btn.bind(on_press=self._toggle_heb)
 
         btn_prev = Button(
-            text="◄", size_hint=(None, 1), width=dp(42),
+            text="<", size_hint=(None, 1), width=dp(42),
             font_size=sp(16), background_normal="",
             background_color=(0.28, 0.38, 0.68, 1), color=(1, 1, 1, 1),
         )
@@ -180,7 +194,7 @@ class MonthScreen(Screen):
         self._month_lbl = Label(text="", font_size=sp(15), bold=True, color=(1, 1, 1, 1))
 
         btn_next = Button(
-            text="►", size_hint=(None, 1), width=dp(42),
+            text=">", size_hint=(None, 1), width=dp(42),
             font_size=sp(16), background_normal="",
             background_color=(0.28, 0.38, 0.68, 1), color=(1, 1, 1, 1),
         )
@@ -198,6 +212,7 @@ class MonthScreen(Screen):
             text=CITIES[ST.city_key].name,
             values=[c.name for c in CITIES.values()],
             font_size=sp(13),
+            background_normal="", background_down="",
             background_color=(1, 1, 1, 1), color=(0.1, 0.1, 0.4, 1),
         )
         self._city_sp.bind(text=self._on_city)
@@ -228,10 +243,12 @@ class MonthScreen(Screen):
                                color=(0.1, 0.1, 0.4, 1), halign="left",
                                size_hint_x=1, text_size=(None, None))
         self._p_hdate = Label(text="", font_size=sp(11), color=(0.3, 0.3, 0.6, 1),
+                               font_name=_HEBREW_FONT,
                                halign="left", size_hint_x=1, text_size=(None, None))
         self._p_times = Label(text="", font_size=sp(11), color=(0.15, 0.15, 0.15, 1),
                                halign="left", size_hint_x=1, text_size=(None, None))
         self._p_daf   = Label(text="", font_size=sp(11), color=(0.5, 0.3, 0.0, 1),
+                               font_name=_HEBREW_FONT,
                                halign="left", size_hint_x=1, text_size=(None, None))
 
         btn_row = BoxLayout(size_hint_y=None, height=dp(32))
@@ -257,6 +274,7 @@ class MonthScreen(Screen):
         d = datetime.date(ST.year, ST.month, 1)
         self._month_lbl.text = d.strftime("%B %Y")
         self._heb_btn.text = "EN" if ST.hebrew else "עב"
+        self._heb_btn.font_name = _HEBREW_FONT
         days = WEEKDAYS_HE if ST.hebrew else WEEKDAYS_EN
         for lbl, day in zip(self._hdr_lbls, days):
             lbl.text = _hb(day) if ST.hebrew else day
@@ -280,7 +298,7 @@ class MonthScreen(Screen):
             has_note = bool(_notes.get(str(d)))
 
             cell = Button(
-                text=f"{day}\n{'•' if has_note else ''}",
+                text=str(day) + (" *" if has_note else ""),
                 font_size=sp(12),
                 background_normal="",
                 background_color=C_SEL if d == ST.sel_date else base,
@@ -373,7 +391,7 @@ class DayScreen(Screen):
         _bg(nav, C_HEADER)
 
         btn_back = Button(
-            text="◄ Back", size_hint=(None, 1), width=dp(80),
+            text="< Back", size_hint=(None, 1), width=dp(80),
             font_size=sp(13), background_normal="",
             background_color=(0.28, 0.38, 0.68, 1), color=(1, 1, 1, 1),
         )
@@ -381,11 +399,11 @@ class DayScreen(Screen):
 
         self._date_lbl = Label(text="", font_size=sp(13), bold=True, color=(1, 1, 1, 1))
 
-        btn_p = Button(text="◄", size_hint=(None, 1), width=dp(40),
+        btn_p = Button(text="<", size_hint=(None, 1), width=dp(40),
                        font_size=sp(14), background_normal="",
                        background_color=(0.28, 0.38, 0.68, 1), color=(1, 1, 1, 1))
         btn_p.bind(on_press=lambda *_: self._shift(-1))
-        btn_n = Button(text="►", size_hint=(None, 1), width=dp(40),
+        btn_n = Button(text=">", size_hint=(None, 1), width=dp(40),
                        font_size=sp(14), background_normal="",
                        background_color=(0.28, 0.38, 0.68, 1), color=(1, 1, 1, 1))
         btn_n.bind(on_press=lambda *_: self._shift(1))
@@ -398,7 +416,8 @@ class DayScreen(Screen):
         hdate_bar = BoxLayout(size_hint_y=None, height=dp(30),
                               padding=[dp(8), dp(2), dp(8), dp(2)])
         _bg(hdate_bar, C_SUBHDR)
-        self._hdate_lbl = Label(text="", font_size=sp(12), color=(0.3, 0.3, 0.6, 1))
+        self._hdate_lbl = Label(text="", font_size=sp(12), color=(0.3, 0.3, 0.6, 1),
+                                font_name=_HEBREW_FONT)
         hdate_bar.add_widget(self._hdate_lbl)
         root.add_widget(hdate_bar)
 
@@ -415,7 +434,8 @@ class DayScreen(Screen):
         pd_bar = BoxLayout(size_hint_y=None, height=dp(28),
                            padding=[dp(8), dp(2), dp(8), dp(2)])
         _bg(pd_bar, (1.0, 0.98, 0.90, 1))
-        self._pd_lbl = Label(text="", font_size=sp(11), color=(0.5, 0.3, 0.0, 1))
+        self._pd_lbl = Label(text="", font_size=sp(11), color=(0.5, 0.3, 0.0, 1),
+                             font_name=_HEBREW_FONT)
         pd_bar.add_widget(self._pd_lbl)
         root.add_widget(pd_bar)
 
@@ -552,6 +572,7 @@ class LuachApp(App):
         if _IMPORT_ERROR:
             return _err_screen("IMPORT ERROR:\n" + _IMPORT_ERROR)
         try:
+            _init_fonts()
             Window.clearcolor = C_WHITE
             _notes_load()
             sm = ScreenManager()
