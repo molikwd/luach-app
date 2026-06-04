@@ -14,7 +14,7 @@ requirements = python3==3.11.4,hostpython3==3.11.4,kivy==2.3.0,zmanim,pyluach,py
 
 orientation = portrait
 fullscreen = 0
-icon.filename = %(source.dir)s/icon.png
+icon.filename = %(source.dir)s/logo.png
 
 android.permissions = WRITE_EXTERNAL_STORAGE
 android.api = 33
