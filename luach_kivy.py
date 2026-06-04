@@ -17,7 +17,9 @@ from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.spinner import Spinner
 from kivy.uix.widget import Widget
+from kivy.uix.image import Image as KvImage
 from kivy.metrics import dp, sp
+from kivy.resources import resource_find
 from kivy.core.window import Window
 from kivy.graphics import Color, Rectangle
 
@@ -142,6 +144,13 @@ class MonthScreen(Screen):
         nav = BoxLayout(size_hint_y=None, height=dp(50),
                         padding=[dp(4)] * 4, spacing=dp(4))
         _bg(nav, C_HEADER)
+
+        # Logo (left side)
+        logo_src = resource_find("logo.png")
+        if logo_src:
+            logo_w = KvImage(source=logo_src, size_hint=(None, 1), width=dp(56),
+                             allow_stretch=True, keep_ratio=True)
+            nav.add_widget(logo_w)
 
         self._heb_btn = Button(
             text="עב", size_hint=(None, 1), width=dp(46),

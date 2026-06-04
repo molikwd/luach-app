@@ -5,13 +5,13 @@ package.name = luach
 package.domain = org.jewish
 
 source.dir = .
-source.include_exts = py,json,ttf
-source.include_patterns = luach_kivy.py,zmanim_core.py
+source.include_exts = py,json,ttf,png
+source.include_patterns = luach_kivy.py,zmanim_core.py,logo.png
 
 version = 1.0
 
 # Pure-Python requirements — all work on Android
-requirements = python3==3.10.0,kivy==2.3.0,zmanim,pyluach,pytz,julian,memoization,python-bidi
+requirements = python3==3.10.0,kivy==2.3.0,zmanim,pyluach,pytz,julian,memoization,python-bidi,Pillow
 
 orientation = portrait
 fullscreen = 0
