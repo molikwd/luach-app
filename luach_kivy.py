@@ -36,13 +36,8 @@ def _init_fonts():
         except Exception:
             pass
 
-try:
-    from bidi.algorithm import get_display as _bidi
-    def _hb(t: str) -> str:
-        return _bidi(t) if t else t
-except ImportError:
-    def _hb(t: str) -> str:
-        return t
+def _hb(t: str) -> str:
+    return t  # Kivy/FreeType handles RTL natively — no bidi reversal needed
 
 import traceback as _tb
 _IMPORT_ERROR: str | None = None
@@ -101,6 +96,16 @@ def _fmt(dt) -> str:
     if getattr(dt, "second", 0) >= 30:
         dt = dt + datetime.timedelta(minutes=1)
     return dt.strftime("%I:%M %p").lstrip("0") or dt.strftime("%I:%M %p")
+
+
+_HEB_NUMS = [
+    "", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט",
+    "י", "יא", "יב", "יג", "יד", "טו", "טז", "יז", "יח", "יט",
+    "כ", "כא", "כב", "כג", "כד", "כה", "כו", "כז", "כח", "כט", "ל",
+]
+
+def _int_to_heb(n: int) -> str:
+    return _HEB_NUMS[n] if 1 <= n <= 30 else str(n)
 
 
 def _cell_color(date: datetime.date) -> tuple:
@@ -300,9 +305,28 @@ class MonthScreen(Screen):
             base = _cell_color(d)
             has_note = bool(_notes.get(str(d)))
 
+            try:
+                hday = _int_to_heb(JewishCalendar(d).jewish_day)
+            except Exception:
+                hday = ""
+
+            cl_str = ""
+            if d.weekday() == 4:  # Friday — fetch candle lighting
+                try:
+                    dz_f = compute_day(ST.city_key, d)
+                    if dz_f.candle_lighting:
+                        cl_str = "\n" + _fmt(dz_f.candle_lighting)
+                except Exception:
+                    pass
+
+            note_mark = " *" if has_note else ""
+            lines = ([hday] if hday else []) + [f"{day}{note_mark}"]
+            cell_text = "\n".join(lines) + cl_str
+
             cell = Button(
-                text=str(day) + (" *" if has_note else ""),
-                font_size=sp(12),
+                text=cell_text,
+                font_size=sp(10),
+                font_name=_HEBREW_FONT,
                 background_normal="",
                 background_color=C_SEL if d == ST.sel_date else base,
                 color=(0.1, 0.1, 0.1, 1),
