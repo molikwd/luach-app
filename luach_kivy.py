@@ -31,8 +31,19 @@ except ImportError:
     def _hb(t: str) -> str:
         return t
 
-from zmanim_core import CITIES, compute_day, ZMAN_FIELDS
-from zmanim.hebrew_calendar.jewish_calendar import JewishCalendar
+import traceback as _tb
+_IMPORT_ERROR: str | None = None
+try:
+    from zmanim_core import CITIES, compute_day, ZMAN_FIELDS
+    from zmanim.hebrew_calendar.jewish_calendar import JewishCalendar
+except Exception:
+    _IMPORT_ERROR = _tb.format_exc()
+    CITIES, ZMAN_FIELDS = {}, []          # type: ignore
+    def compute_day(*a, **kw):            # type: ignore
+        raise RuntimeError("import failed")
+    class JewishCalendar:                 # type: ignore
+        def __init__(self, *a): pass
+        def significant_day(self): return None
 
 
 # ── Global state ──────────────────────────────────────────────────────────
@@ -527,14 +538,28 @@ class DayScreen(Screen):
 
 
 # ── App ───────────────────────────────────────────────────────────────────
+def _err_screen(msg: str):
+    sv = ScrollView()
+    lbl = Label(text=msg, font_size=sp(9), halign="left", valign="top",
+                size_hint_y=None, text_size=(Window.width, None))
+    lbl.bind(texture_size=lambda w, s: setattr(w, "height", s[1]))
+    sv.add_widget(lbl)
+    return sv
+
+
 class LuachApp(App):
     def build(self):
-        Window.clearcolor = C_WHITE
-        _notes_load()
-        sm = ScreenManager()
-        sm.add_widget(MonthScreen(name="month"))
-        sm.add_widget(DayScreen(name="day"))
-        return sm
+        if _IMPORT_ERROR:
+            return _err_screen("IMPORT ERROR:\n" + _IMPORT_ERROR)
+        try:
+            Window.clearcolor = C_WHITE
+            _notes_load()
+            sm = ScreenManager()
+            sm.add_widget(MonthScreen(name="month"))
+            sm.add_widget(DayScreen(name="day"))
+            return sm
+        except Exception:
+            return _err_screen("BUILD ERROR:\n" + _tb.format_exc())
 
     def on_pause(self):
         return True   # keep alive when Android home-buttons

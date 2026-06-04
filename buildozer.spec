@@ -24,6 +24,7 @@ android.sdk = 33
 android.archs = arm64-v8a
 android.allow_backup = True
 android.release_artifact = apk
+android.add_python_excludes = test unittest idlelib lib2to3 ensurepip tkinter turtledemo turtle doctest pydoc antigravity
 
 [buildozer]
 log_level = 2
