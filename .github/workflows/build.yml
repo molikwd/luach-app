@@ -32,7 +32,8 @@ jobs:
             libssl-dev libffi-dev zlib1g-dev \
             libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libsdl2-ttf-dev \
             libportmidi-dev libswscale-dev libavformat-dev libavcodec-dev \
-            autoconf libtool pkg-config unzip wget
+            autoconf libtool pkg-config unzip wget \
+            cmake ninja-build patch
 
       # Sets ANDROID_SDK_ROOT → /usr/local/lib/android/sdk
       - name: Set up Android SDK
