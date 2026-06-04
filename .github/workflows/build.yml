@@ -42,7 +42,12 @@ jobs:
         run: |
           yes | sdkmanager --licenses
           sdkmanager "build-tools;33.0.2" "platforms;android-33" "platform-tools"
-          # Buildozer still looks at the old tools/bin path — symlink new location
+          # Buildozer always uses ~/.buildozer/android/platform/android-sdk/
+          # regardless of ANDROID_HOME — symlink it to the real SDK
+          mkdir -p "$HOME/.buildozer/android/platform"
+          ln -sf "$ANDROID_SDK_ROOT" \
+                 "$HOME/.buildozer/android/platform/android-sdk"
+          # Also satisfy Buildozer's legacy tools/bin/sdkmanager check
           mkdir -p "$ANDROID_SDK_ROOT/tools/bin"
           ln -sf "$ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager" \
                  "$ANDROID_SDK_ROOT/tools/bin/sdkmanager"
