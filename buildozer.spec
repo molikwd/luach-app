@@ -10,7 +10,7 @@ source.include_patterns = luach_kivy.py,zmanim_core.py,logo.png
 
 version = 1.0
 
-requirements = python3==3.11.4,hostpython3==3.11.4,kivy==2.3.0,zmanim,pyluach,pytz,julian,memoization,python-bidi
+requirements = python3==3.11.4,hostpython3==3.11.4,kivy==2.3.0,zmanim,pyluach,pytz,julian,memoization,python-bidi,python-dateutil
 
 orientation = portrait
 fullscreen = 0
