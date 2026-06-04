@@ -39,7 +39,8 @@ CITIES: dict[str, City] = {
     "london":      City("London",          "לונדון",      51.5074,   -0.1278, "Europe/London",       11),
     "manchester":  City("Manchester",      "מנצ'סטר",     53.4808,   -2.2426, "Europe/London",       38),
     "antwerp":     City("Antwerp",         "אנטוורפן",    51.2194,    4.4025, "Europe/Brussels",      7),
-    "stamford_ny": City("Stamford, NY",     "סטאמפארד",    42.3338,  -74.6426, "America/New_York",   691),
+    "stamford_ny": City("The Zone Boys Camp", "זון בויז קאמפ", 42.3338,  -74.6426, "America/New_York",   691),
+    "gilboa_ny":   City("The Zone Girls Camp","זון גירלז קאמפ",42.3951,  -74.4934, "America/New_York",   538),
 }
 
 

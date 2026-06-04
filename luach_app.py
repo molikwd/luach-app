@@ -12,6 +12,14 @@ from tkinter import ttk
 from zmanim_core import compute_day, CITIES, ZMAN_FIELDS
 from zmanim.hebrew_calendar.jewish_calendar import JewishCalendar
 
+try:
+    from PIL import Image, ImageTk
+    _PIL = True
+except ImportError:
+    _PIL = False
+
+_LOGO_PATH = Path(__file__).parent / "logo.png"
+
 # ── Persistence ───────────────────────────────────────────────────────────
 _APP_DIR   = Path(os.environ.get("APPDATA", Path.home())) / "Luach"
 NOTES_FILE = _APP_DIR / "notes.json"
@@ -157,6 +165,9 @@ class LuachApp:
         self._city_keys  = list(CITIES.keys())
         self._city_names = [c.name for c in CITIES.values()]
 
+        self._logo_img = self._load_logo(40)
+        if self._logo_img:
+            self.root.iconphoto(True, self._load_logo(64) or self._logo_img)
         self._build_topbar()
         self._content = tk.Frame(self.root, bg=BG)
         self._content.pack(fill=tk.BOTH, expand=True)
@@ -165,13 +176,28 @@ class LuachApp:
         self._switch_view("month")
         self.root.after(60_000, self._tick)
 
+    # ── Logo loader ───────────────────────────────────────────────────────
+    def _load_logo(self, height: int):
+        if not _PIL or not _LOGO_PATH.exists():
+            return None
+        try:
+            img = Image.open(_LOGO_PATH).convert("RGBA")
+            w = int(img.width * height / img.height)
+            img = img.resize((w, height), Image.LANCZOS)
+            return ImageTk.PhotoImage(img)
+        except Exception:
+            return None
+
     # ── Top bar ───────────────────────────────────────────────────────────
     def _build_topbar(self):
         bar = tk.Frame(self.root, bg=NAVY, padx=10, pady=7)
         bar.pack(fill=tk.X)
 
-        tk.Label(bar, text="Jewish Calendar  |  לוח יהודי",
-                 bg=NAVY, fg="white", font=F(13, True)).pack(side=tk.LEFT)
+        if self._logo_img:
+            tk.Label(bar, image=self._logo_img, bg=NAVY).pack(side=tk.LEFT, padx=(0, 8))
+        else:
+            tk.Label(bar, text="Jewish Calendar  |  לוח יהודי",
+                     bg=NAVY, fg="white", font=F(13, True)).pack(side=tk.LEFT)
 
         right = tk.Frame(bar, bg=NAVY)
         right.pack(side=tk.RIGHT)

@@ -8,6 +8,7 @@ a = Analysis(
     datas=[
         ('C:\\k4k_env\\Lib\\site-packages\\zmanim', 'zmanim'),
         ('C:\\k4k_env\\Lib\\site-packages\\pyluach', 'pyluach'),
+        ('logo.png', '.'),
     ],
     hiddenimports=[
         'zmanim',
@@ -24,6 +25,9 @@ a = Analysis(
         'pyluach.parshios',
         'tkinter',
         'tkinter.ttk',
+        'PIL',
+        'PIL.Image',
+        'PIL.ImageTk',
     ],
     hookspath=[],
     hooksconfig={},
