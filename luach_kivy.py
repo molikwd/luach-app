@@ -1,7 +1,6 @@
 """
-luach_kivy.py  —  Luach Android app (Kivy)
+luach_kivy.py  --  Luach Android app (Kivy)
 Reuses zmanim_core.py for all halachic time calculations.
-Build: see colab_build.ipynb
 """
 from __future__ import annotations
 import os, json, datetime, calendar
@@ -25,9 +24,10 @@ from kivy.core.text import LabelBase
 from kivy.graphics import Color, Rectangle
 
 _HEBREW_FONT = "Roboto"
+_EMOJI_FONT  = "Roboto"
 
 def _init_fonts():
-    global _HEBREW_FONT
+    global _HEBREW_FONT, _EMOJI_FONT
     p = resource_find("NotoSansHebrew.ttf")
     if p:
         try:
@@ -35,10 +35,34 @@ def _init_fonts():
             _HEBREW_FONT = "NotoHebrew"
         except Exception:
             pass
+    p2 = resource_find("NotoSansSymbols2.ttf")
+    if p2:
+        try:
+            LabelBase.register("NotoSymbols2", fn_regular=p2)
+            _EMOJI_FONT = "NotoSymbols2"
+        except Exception:
+            pass
+
+
+def _rev_heb(t: str) -> str:
+    """Pre-reverse each Hebrew character run.
+    Kivy's RTL engine reverses them back, giving correct display order."""
+    result, run, in_heb = [], [], False
+    for ch in t:
+        # Hebrew block U+0590-U+05FF (letters, niqqud, punctuation)
+        is_heb = '֐' <= ch <= '׿'
+        if is_heb != in_heb:
+            result.extend(reversed(run) if in_heb else run)
+            run, in_heb = [], is_heb
+        run.append(ch)
+    result.extend(reversed(run) if in_heb else run)
+    return ''.join(result)
+
 
 def _hb(t: str) -> str:
-    # LTR-override prevents Kivy from reversing Hebrew character order
-    return "\u202D" + t + "\u202C" if t else t
+    """Prepare Hebrew text for Kivy: pre-reverse so Kivy's reversal restores order."""
+    return _rev_heb(t) if t else t
+
 
 import traceback as _tb
 _IMPORT_ERROR: str | None = None
@@ -55,7 +79,7 @@ except Exception:
         def significant_day(self): return None
 
 
-# ── Global state ──────────────────────────────────────────────────────────
+# -- Global state -------------------------------------------------------------
 class _St:
     hebrew:   bool          = False
     city_key: str           = "lakewood"
@@ -65,15 +89,26 @@ class _St:
 
 ST = _St()
 
-# ── Constants ─────────────────────────────────────────────────────────────
+# -- Constants ----------------------------------------------------------------
 WEEKDAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Shab"]
-WEEKDAYS_HE = ["א׳", "ב׳", "ג׳", "ד׳", "ה׳", "ו׳", "שבת"]
+WEEKDAYS_HE = ["א׳", "ב׳", "ג׳",
+               "ד׳", "ה׳", "ו׳", "שבת"]
 
 ZMAN_EN = [lbl for lbl, _ in ZMAN_FIELDS]
 ZMAN_HE = [
-    "עלות השחר", "נץ החמה", 'סו"ז ק"ש מג"א', 'סו"ז ק"ש גר"א',
-    'סו"ז תפילה מג"א', 'סו"ז תפילה גר"א', "חצות", "מנחה גדולה",
-    "מנחה קטנה", "פלג המנחה", "שקיעה", "צאת הכוכבים", 'צאת 72 / ר"ת',
+    "עלות השחר",
+    "נץ החמה",
+    'סו"ז ק"ש מג"א',
+    'סו"ז ק"ש גר"א',
+    'סו"ז תפילה מג"א',
+    'סו"ז תפילה גר"א',
+    "חצות",
+    "מנחה גדולה",
+    "מנחה קטנה",
+    "פלג המנחה",
+    "שקיעה",
+    "צאת הכוכבים",
+    'צאת 72 / ר"ת',
 ]
 
 C_HEADER  = (0.172, 0.243, 0.478, 1)
@@ -100,9 +135,14 @@ def _fmt(dt) -> str:
 
 
 _HEB_NUMS = [
-    "", "א", "ב", "ג", "ד", "ה", "ו", "ז", "ח", "ט",
-    "י", "יא", "יב", "יג", "יד", "טו", "טז", "יז", "יח", "יט",
-    "כ", "כא", "כב", "כג", "כד", "כה", "כו", "כז", "כח", "כט", "ל",
+    "", "א", "ב", "ג", "ד", "ה",
+    "ו", "ז", "ח", "ט",
+    "י", "יא", "יב", "יג", "יד",
+    "טו", "טז",
+    "יז", "יח", "יט",
+    "כ", "כא", "כב", "כג", "כד",
+    "כה", "כו", "כז", "כח",
+    "כט", "ל",
 ]
 
 def _int_to_heb(n: int) -> str:
@@ -112,7 +152,7 @@ def _int_to_heb(n: int) -> str:
 def _cell_color(date: datetime.date) -> tuple:
     if date == datetime.date.today():
         return C_TODAY
-    if date.weekday() == 5:  # Saturday
+    if date.weekday() == 5:
         return C_SHAB
     try:
         sig = JewishCalendar(date).significant_day()
@@ -133,7 +173,7 @@ def _bg(widget, color):
     widget.bind(pos=_upd, size=_upd)
 
 
-# ── Notes ─────────────────────────────────────────────────────────────────
+# -- Notes --------------------------------------------------------------------
 _notes: dict[str, str] = {}
 _notes_file: Path | None = None
 
@@ -158,9 +198,9 @@ def _notes_save():
         )
 
 
-# ══════════════════════════════════════════════════════════════════════════
+# =============================================================================
 # MONTH SCREEN
-# ══════════════════════════════════════════════════════════════════════════
+# =============================================================================
 class MonthScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -177,7 +217,6 @@ class MonthScreen(Screen):
                         padding=[dp(4)] * 4, spacing=dp(4))
         _bg(nav, C_HEADER)
 
-        # Logo (left side)
         logo_src = resource_find("logo.png")
         if logo_src:
             logo_w = KvImage(source=logo_src, size_hint=(None, 1), width=dp(56),
@@ -281,7 +320,8 @@ class MonthScreen(Screen):
     def _render(self):
         d = datetime.date(ST.year, ST.month, 1)
         self._month_lbl.text = d.strftime("%B %Y")
-        self._heb_btn.text = "EN" if ST.hebrew else "עב"
+        # Toggle button: "EN" when Hebrew is on, pre-reversed "עב" when off
+        self._heb_btn.text = "EN" if ST.hebrew else _hb("עב")
         self._heb_btn.font_name = _HEBREW_FONT
         days = WEEKDAYS_HE if ST.hebrew else WEEKDAYS_EN
         for lbl, day in zip(self._hdr_lbls, days):
@@ -296,7 +336,7 @@ class MonthScreen(Screen):
         self._sel_btn = None
 
         first = datetime.date(ST.year, ST.month, 1)
-        start_col = (first.weekday() + 1) % 7  # Sun=0 in our grid
+        start_col = (first.weekday() + 1) % 7
         for _ in range(start_col):
             self._grid.add_widget(Widget())
 
@@ -307,25 +347,28 @@ class MonthScreen(Screen):
             has_note = bool(_notes.get(str(d)))
 
             try:
-                hday = "\u202D" + _int_to_heb(JewishCalendar(d).jewish_day) + "\u202C"
+                hday = _hb(_int_to_heb(JewishCalendar(d).jewish_day))
             except Exception:
                 hday = ""
 
             cl_str = ""
-            if d.weekday() == 4:  # Friday — fetch candle lighting
+            if d.weekday() == 4:
                 try:
                     dz_f = compute_day(ST.city_key, d)
                     if dz_f.candle_lighting:
-                        cl_str = "\n🕯 " + _fmt(dz_f.candle_lighting)
+                        # Use emoji font via markup for the candle character
+                        cl_str = ("\n[font=" + _EMOJI_FONT + "]\U0001f56f[/font] "
+                                  + _fmt(dz_f.candle_lighting))
                 except Exception:
                     pass
 
             note_mark = " *" if has_note else ""
-            lines = ([hday] if hday else []) + [f"{day}{note_mark}"]
+            lines = ([hday] if hday else []) + [str(day) + note_mark]
             cell_text = "\n".join(lines) + cl_str
 
             cell = Button(
                 text=cell_text,
+                markup=True,
                 font_size=sp(10),
                 font_name=_HEBREW_FONT,
                 background_normal="",
@@ -368,13 +411,19 @@ class MonthScreen(Screen):
         ss = tf.get("Shkiah (Sunset)", "—")
         self._p_times.text = f"Netz: {sr}  •  Shkiah: {ss}"
 
-        parts = []
         parsha = dz.parsha_he if ST.hebrew else dz.parsha_en
-        if parsha:
-            parts.append(("פרשת " if ST.hebrew else "Parshas ") +
-                         (_hb(parsha) if ST.hebrew else parsha))
-        parts.append(_hb(dz.daf_he) if ST.hebrew else dz.daf_en)
-        self._p_daf.text = "  •  ".join(parts)
+        if ST.hebrew:
+            he_parts = []
+            if parsha:
+                he_parts.append("פרשת " + parsha)
+            he_parts.append(dz.daf_he)
+            self._p_daf.text = _hb("  •  ".join(he_parts))
+        else:
+            en_parts = []
+            if parsha:
+                en_parts.append("Parshas " + parsha)
+            en_parts.append(dz.daf_en)
+            self._p_daf.text = "  •  ".join(en_parts)
 
     def _toggle_heb(self, *_):
         ST.hebrew = not ST.hebrew
@@ -400,9 +449,9 @@ class MonthScreen(Screen):
         self.manager.current = "day"
 
 
-# ══════════════════════════════════════════════════════════════════════════
+# =============================================================================
 # DAY SCREEN
-# ══════════════════════════════════════════════════════════════════════════
+# =============================================================================
 class DayScreen(Screen):
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -449,7 +498,7 @@ class DayScreen(Screen):
         hdate_bar.add_widget(self._hdate_lbl)
         root.add_widget(hdate_bar)
 
-        # Shabbos bar (shown Fri/Sat only)
+        # Shabbos bar (Fri/Sat only)
         self._shab_bar = BoxLayout(size_hint_y=None, height=0,
                                     padding=[dp(8), dp(2), dp(8), dp(2)])
         _bg(self._shab_bar, C_SHAB_B)
@@ -521,7 +570,7 @@ class DayScreen(Screen):
         self._hdate_lbl.text = hd + (f"  • {sig}" if sig else "")
 
         tf = dz.formatted()
-        dow = d.weekday()  # 0=Mon..6=Sun; 4=Fri, 5=Sat
+        dow = d.weekday()
         if dow == 4 and dz.candle_lighting:
             self._shab_lbl.text = f"  Candle Lighting: {_fmt(dz.candle_lighting)}"
             self._shab_bar.height = dp(34)
@@ -534,13 +583,19 @@ class DayScreen(Screen):
             self._shab_lbl.text = ""
             self._shab_bar.height = 0
 
-        parts = []
         parsha = dz.parsha_he if ST.hebrew else dz.parsha_en
-        if parsha:
-            pref = "פרשת " if ST.hebrew else "Parshas "
-            parts.append(pref + (_hb(parsha) if ST.hebrew else parsha))
-        parts.append(_hb(dz.daf_he) if ST.hebrew else dz.daf_en)
-        self._pd_lbl.text = "  •  ".join(parts)
+        if ST.hebrew:
+            he_parts = []
+            if parsha:
+                he_parts.append("פרשת " + parsha)
+            he_parts.append(dz.daf_he)
+            self._pd_lbl.text = _hb("  •  ".join(he_parts))
+        else:
+            en_parts = []
+            if parsha:
+                en_parts.append("Parshas " + parsha)
+            en_parts.append(dz.daf_en)
+            self._pd_lbl.text = "  •  ".join(en_parts)
 
         self._zman_layout.clear_widgets()
         for i, (en, he) in enumerate(zip(ZMAN_EN, ZMAN_HE)):
@@ -586,7 +641,7 @@ class DayScreen(Screen):
         self.manager.current = "month"
 
 
-# ── App ───────────────────────────────────────────────────────────────────
+# -- App ----------------------------------------------------------------------
 def _err_screen(msg: str):
     sv = ScrollView()
     lbl = Label(text=msg, font_size=sp(9), halign="left", valign="top",
@@ -612,7 +667,7 @@ class LuachApp(App):
             return _err_screen("BUILD ERROR:\n" + _tb.format_exc())
 
     def on_pause(self):
-        return True   # keep alive when Android home-buttons
+        return True
 
     def on_resume(self):
         pass
