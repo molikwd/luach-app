@@ -37,7 +37,8 @@ def _init_fonts():
             pass
 
 def _hb(t: str) -> str:
-    return t  # Kivy/FreeType handles RTL natively — no bidi reversal needed
+    # LTR-override prevents Kivy from reversing Hebrew character order
+    return "\u202D" + t + "\u202C" if t else t
 
 import traceback as _tb
 _IMPORT_ERROR: str | None = None
@@ -306,7 +307,7 @@ class MonthScreen(Screen):
             has_note = bool(_notes.get(str(d)))
 
             try:
-                hday = _int_to_heb(JewishCalendar(d).jewish_day)
+                hday = "\u202D" + _int_to_heb(JewishCalendar(d).jewish_day) + "\u202C"
             except Exception:
                 hday = ""
 
