@@ -315,7 +315,7 @@ class MonthScreen(Screen):
                 try:
                     dz_f = compute_day(ST.city_key, d)
                     if dz_f.candle_lighting:
-                        cl_str = "\n" + _fmt(dz_f.candle_lighting)
+                        cl_str = "\n🕯 " + _fmt(dz_f.candle_lighting)
                 except Exception:
                     pass
 
