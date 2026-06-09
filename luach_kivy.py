@@ -3,7 +3,7 @@ luach_kivy.py  --  Luach Android app (Kivy)
 Reuses zmanim_core.py for all halachic time calculations.
 """
 from __future__ import annotations
-import os, json, datetime, calendar
+import os, json, datetime, calendar, re
 from pathlib import Path
 
 from kivy.app import App
@@ -45,18 +45,13 @@ def _init_fonts():
 
 
 def _rev_heb(t: str) -> str:
-    """Pre-reverse each Hebrew character run.
-    Kivy's RTL engine reverses them back, giving correct display order."""
-    result, run, in_heb = [], [], False
-    for ch in t:
-        # Hebrew block U+0590-U+05FF (letters, niqqud, punctuation)
-        is_heb = '֐' <= ch <= '׿'
-        if is_heb != in_heb:
-            result.extend(reversed(run) if in_heb else run)
-            run, in_heb = [], is_heb
-        run.append(ch)
-    result.extend(reversed(run) if in_heb else run)
-    return ''.join(result)
+    """Pre-reverse Hebrew+space segments so Kivy's BiDi restores original order.
+    Spaces between Hebrew chars stay in the same run so word order is preserved."""
+    def _rev(m): return m.group()[::-1]
+    return re.sub(
+        r'[֐-׿][֐-׿ ]*[֐-׿]|[֐-׿]',
+        _rev, t
+    )
 
 
 def _hb(t: str) -> str:
@@ -98,17 +93,17 @@ ZMAN_EN = [lbl for lbl, _ in ZMAN_FIELDS]
 ZMAN_HE = [
     "עלות השחר",
     "נץ החמה",
-    'סו"ז ק"ש מג"א',
-    'סו"ז ק"ש גר"א',
-    'סו"ז תפילה מג"א',
-    'סו"ז תפילה גר"א',
+    'סו״ז ק״ש מג״א',
+    'סו״ז ק״ש גר״א',
+    'סו״ז תפילה מג״א',
+    'סו״ז תפילה גר״א',
     "חצות",
     "מנחה גדולה",
     "מנחה קטנה",
     "פלג המנחה",
     "שקיעה",
     "צאת הכוכבים",
-    'צאת 72 / ר"ת',
+    'צאת 72 / ר״ת',
 ]
 
 C_HEADER  = (0.172, 0.243, 0.478, 1)
@@ -356,9 +351,16 @@ class MonthScreen(Screen):
                 try:
                     dz_f = compute_day(ST.city_key, d)
                     if dz_f.candle_lighting:
-                        # Use emoji font via markup for the candle character
                         cl_str = ("\n[font=" + _EMOJI_FONT + "]\U0001f56f[/font] "
                                   + _fmt(dz_f.candle_lighting))
+                except Exception:
+                    pass
+            elif d.weekday() == 5:
+                try:
+                    dz_s = compute_day(ST.city_key, d)
+                    p = dz_s.parsha_he if ST.hebrew else dz_s.parsha_en
+                    if p:
+                        cl_str = "\n" + (_hb(p) if ST.hebrew else p)
                 except Exception:
                     pass
 
@@ -544,6 +546,7 @@ class DayScreen(Screen):
         self._note_in = TextInput(
             hint_text="Add a note for this date...",
             font_size=sp(12), multiline=True, size_hint_y=1,
+            font_name=_HEBREW_FONT,
         )
         notes_box.add_widget(hdr)
         notes_box.add_widget(self._note_in)
