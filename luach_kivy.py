@@ -346,27 +346,24 @@ class MonthScreen(Screen):
             except Exception:
                 hday = ""
 
-            cl_str = ""
-            if d.weekday() == 4:
-                try:
-                    dz_f = compute_day(ST.city_key, d)
-                    if dz_f.candle_lighting:
-                        cl_str = ("\n[font=" + _EMOJI_FONT + "]\U0001f56f[/font] "
-                                  + _fmt(dz_f.candle_lighting))
-                except Exception:
-                    pass
-            elif d.weekday() == 5:
-                try:
-                    dz_s = compute_day(ST.city_key, d)
-                    p = dz_s.parsha_he if ST.hebrew else dz_s.parsha_en
+            extra = []
+            try:
+                dz_d = compute_day(ST.city_key, d)
+                if dz_d.significant_day:
+                    extra.append("[b]" + dz_d.significant_day + "[/b]")
+                if d.weekday() == 4 and dz_d.candle_lighting:
+                    extra.append("[font=" + _EMOJI_FONT + "]\U0001f56f[/font] "
+                                 + _fmt(dz_d.candle_lighting))
+                elif d.weekday() == 5:
+                    p = dz_d.parsha_he if ST.hebrew else dz_d.parsha_en
                     if p:
-                        cl_str = "\n" + (_hb(p) if ST.hebrew else p)
-                except Exception:
-                    pass
+                        extra.append(_hb(p) if ST.hebrew else p)
+            except Exception:
+                pass
 
             note_mark = " *" if has_note else ""
-            lines = ([hday] if hday else []) + [str(day) + note_mark]
-            cell_text = "\n".join(lines) + cl_str
+            lines = ([hday] if hday else []) + [str(day) + note_mark] + extra
+            cell_text = "\n".join(lines)
 
             cell = Button(
                 text=cell_text,
@@ -404,7 +401,7 @@ class MonthScreen(Screen):
 
         self._p_date.text = f"{d.strftime('%A, %B')} {d.day}, {d.year}"
 
-        hd = _hb(dz.hebrew_date) if ST.hebrew else dz.hebrew_date
+        hd = _hb(dz.hebrew_date)
         sig = dz.significant_day or ""
         self._p_hdate.text = hd + (f"  • {sig}" if sig else "")
 
@@ -568,7 +565,7 @@ class DayScreen(Screen):
 
         self._date_lbl.text = f"{d.strftime('%b')} {d.day}, {d.year}"
 
-        hd = _hb(dz.hebrew_date) if ST.hebrew else dz.hebrew_date
+        hd = _hb(dz.hebrew_date)
         sig = dz.significant_day or ""
         self._hdate_lbl.text = hd + (f"  • {sig}" if sig else "")
 
