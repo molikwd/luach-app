@@ -116,8 +116,32 @@ for _en, _he, _n, _s in _DAF_SCHEDULE:
 _DAF_TOTAL = _total   # ≈ 2711
 
 
+def _hebrew_number(num: int) -> str:
+    """Return a Hebrew-letter number without geresh/gershayim."""
+    if num <= 0:
+        return str(num)
+
+    letters = [
+        (400, "ת"), (300, "ש"), (200, "ר"), (100, "ק"),
+        (90, "צ"), (80, "פ"), (70, "ע"), (60, "ס"), (50, "נ"),
+        (40, "מ"), (30, "ל"), (20, "כ"), (10, "י"),
+        (9, "ט"), (8, "ח"), (7, "ז"), (6, "ו"), (5, "ה"),
+        (4, "ד"), (3, "ג"), (2, "ב"), (1, "א"),
+    ]
+
+    out = []
+    remaining = num
+    for value, letter in letters:
+        while remaining >= value:
+            out.append(letter)
+            remaining -= value
+
+    text = "".join(out)
+    return text.replace("יה", "טו").replace("יו", "טז")
+
+
 def get_daf_yomi(date: datetime.date) -> tuple[str, str]:
-    """Return (english_str, hebrew_str) for date's Daf Yomi, e.g. ('Chullin 34', 'חולין 34')."""
+    """Return (english_str, hebrew_str) for date's Daf Yomi, e.g. ('Chullin 34', 'חולין לד')."""
     day_num = (date - _DAF_CYCLE_14_START).days % _DAF_TOTAL
     if day_num < 0:
         day_num += _DAF_TOTAL
@@ -129,7 +153,7 @@ def get_daf_yomi(date: datetime.date) -> tuple[str, str]:
             break
     en, he, num_daf, start_daf = _DAF_SCHEDULE[idx]
     daf_num = start_daf + (day_num - _DAF_CUMULATIVE[idx])
-    return f"{en} {daf_num}", f"{he} {daf_num}"
+    return f"{en} {daf_num}", f"{he} {_hebrew_number(daf_num)}"
 
 
 # ── Parsha ────────────────────────────────────────────────────────────────
